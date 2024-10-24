@@ -3,6 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import "../globals.css";
 import LeftSideBar from "@/components/layout/LeftSideBar";
 import TopBar from "@/components/layout/TopBar";
+import TosterProvider from "@/lib/TosterProvider";
 
 export const metadata: Metadata = {
   title: "ModaMart - Admin Dashboard",
@@ -18,6 +19,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className="antialiased">
+          <TosterProvider />
           <div className=" flex max-lg:flex-col text-grey-1">
             <LeftSideBar />
             <TopBar />
