@@ -1,3 +1,4 @@
+import Collection from "@/lib/models/Collection";
 import Product from "@/lib/models/Products";
 import { connectToDB } from "@/lib/mongoDB";
 import { auth } from "@clerk/nextjs/server";
@@ -17,8 +18,8 @@ export const POST = async (req: NextRequest) => {
       title,
       description,
       media,
-      catagory,
-      collectons,
+      category,
+      collections,
       tags,
       sizes,
       colors,
@@ -26,7 +27,20 @@ export const POST = async (req: NextRequest) => {
       expense,
     } = await req.json();
 
-    if (!title || !description || !media || !catagory || !price || !expense) {
+    console.log({
+      title,
+      description,
+      media,
+      category,
+      collections,
+      tags,
+      sizes,
+      colors,
+      price,
+      expense,
+    });
+
+    if (!title || !description || !media || !category || !price || !expense) {
       return new NextResponse("Bad request", { status: 400 });
     }
 
@@ -34,8 +48,8 @@ export const POST = async (req: NextRequest) => {
       title,
       description,
       media,
-      catagory,
-      collectons,
+      category,
+      collections,
       tags,
       sizes,
       colors,
@@ -45,9 +59,37 @@ export const POST = async (req: NextRequest) => {
 
     await newProduct.save();
 
+    if (collections) {
+      for (const collectionid of collections) {
+        const collection = await Collection.findById(collectionid);
+
+        if (collection) {
+          collection.products.push(newProduct._id);
+          await collection.save();
+        }
+      }
+    }
+
     return new NextResponse(newProduct, { status: 201 });
   } catch (error) {
     console.log("[products_POST]", error);
     return new NextResponse("Internal server error", { status: 500 });
   }
 };
+
+export const GET = async (req: NextRequest) => {
+  try {
+    await connectToDB();
+
+    const products = await Product.find()
+      .sort({ createdAt: "desc" })
+      .populate({ path: "collections", model: Collection });
+
+    return NextResponse.json(products, { status: 201 });
+  } catch (err) {
+    console.log("[product_GET", err);
+    return new NextResponse("Error getting products", { status: 500 });
+  }
+};
+
+export const dynamic = "force-dynamic";
